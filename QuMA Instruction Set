@@ -1,0 +1,59 @@
+                                         # 1 cycle = 20ns (Assumption from eQASM paper) 
+.def_sym init_waiting_time 10000         # 200 us - inital waiting time to initialize all qubits
+.def_sym msmt_duration 15                # 300 ns - waiting time after measurement
+.def_sym single_qubit_wait 4             # 80 ns - waiting time after single qubit operation
+.def_sym two_qubit_wait 8                # 160 ns - waiting time after two qubit operation
+
+SMIS s0 , { 0 }       #The Biasing Bit (MSB)
+SMIS s1 , { 1 }       #Qubit -1 Middle Qubit 
+SMIS s2 , { 2 }       #Qubit -2 (LSB)
+SMIT t0 , {( 0, 1 )}  #Source - Target
+SMIT t1 , {( 0, 2 )}  #Source - Target
+
+QWAIT init_waiting_time                  # initialize all qubits
+
+#Hadamard Gate on Quubit 1
+4, Y90 s1             #This is a bundle instruction with 4 as QWAIT time for single qubit operation
+4, X180 s1
+
+#Hadamard Gate on Qubit 2
+4, Y90 s2
+4, X180 s2
+
+#Phase SHit by 45
+4, T s1
+4, T s2
+
+#CNOT Gate on q1
+4, Ym90 s1
+8, CZ t0               #This is a bundle instruction with 8 as QWAIT time for two qubit operation
+4, Y90 s1
+
+#NOT Gate on bias qubit
+4, X180 s0
+
+#CNOT Gate on q2
+4, Ym90 s2
+8, CZ t1
+4, Y90 s2
+
+#Phase SHit by 45
+4, T s1
+4, T s2
+
+#Hadamard Gate on Qubit 1
+4, Y90 s1
+4, X180 s1
+
+#Hadamard Gate on Qubit 2
+4, Y90 s2
+4, X180 s2
+
+MEASZ s0
+QWAIT msmt_duration
+
+MEASZ s1
+QWAIT msmt_duration
+
+MEASZ s2
+QWAIT msmt_duration
